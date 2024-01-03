@@ -1,0 +1,16 @@
+# .gitignore
+
+# Files that might contain sensitive information
+.env
+
+# Visual Studio generated files
+.vscode/
+.vs/
+bin/
+obj/
+Publish/
+*.user
+*.suo
+*.cache
+*.log
+*.npm-debug.log
