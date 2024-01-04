@@ -1,9 +1,10 @@
-using HemFixBack.Repositories;
-
 namespace HemFixBack.Models
 {
   public abstract class Task : ITask
   {
+    public string CategoryName { get; set; }
+    public string Id { get; set; }
+    public string Title { get; set; }
     public string ValueString()
     {
       string attributes = string.Empty;

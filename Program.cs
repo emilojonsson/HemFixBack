@@ -6,7 +6,6 @@ using HemFixBack.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using Serilog;
 
 namespace HemFixBack
 {
@@ -47,16 +46,9 @@ namespace HemFixBack
 
       builder.Services.AddEndpointsApiExplorer();
       builder.Services.AddSingleton<IUserService, UserService>();
-      builder.Services.AddSingleton<ISimpleTaskService, SimpleTaskService>();
-      builder.Services.AddScoped<SimpleTaskController>();
-      builder.Services.AddSingleton<IGardenTaskService, GardenTaskService>();
-      builder.Services.AddScoped<GardenTaskController>();
-      builder.Services.AddSingleton<IMaintenanceTaskService, MaintenanceTaskService>();
-      builder.Services.AddScoped<MaintenanceTaskController>();
-      builder.Services.AddSingleton<IPurchaseTaskService, PurchaseTaskService>();
-      builder.Services.AddScoped<PurchaseTaskController>();
-      builder.Services.AddSingleton<ITaskService, TaskService>();
       builder.Services.AddScoped<TaskController>();
+      builder.Services.AddSingleton<ITaskService, TaskService>();
+      builder.Services.AddSingleton<TaskFactory>();
 
       builder.Services.AddCors(options =>
       {
@@ -105,7 +97,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (SimpleTask task, SimpleTaskController controller) => controller.Create(task)
+          (SimpleTask task, TaskController controller) => controller.Create("simpletask", task)
         )
         .Accepts<SimpleTask>("application/json")
         .Produces<SimpleTask>(statusCode: 200, contentType: "application/json");
@@ -116,7 +108,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )]
-          (string id, SimpleTaskController controller) => controller.Get(id)
+          (string id, TaskController controller) => controller.Get("simpletask", id)
         )
         .Produces<SimpleTask>();
 
@@ -124,7 +116,7 @@ namespace HemFixBack
           [Authorize(
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
-          )] (SimpleTaskController controller) => controller.List()
+          )] (TaskController controller) => controller.List("simpletask")
         )
         .Produces<List<SimpleTask>>(statusCode: 200, contentType: "application/json");
 
@@ -134,7 +126,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (SimpleTask newTask, SimpleTaskController controller) => controller.Update(newTask)
+          (ITask newTask, TaskController controller) => controller.Update("simpletask", newTask)
         )
         .Accepts<SimpleTask>("application/json")
         .Produces<SimpleTask>(statusCode: 200, contentType: "application/json");
@@ -145,7 +137,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (string id, SimpleTaskController controller) => controller.Delete(id)
+          (string id, TaskController controller) => controller.Delete("simpletask", id)
         );
 
         app.MapPost(
@@ -154,7 +146,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (GardenTask task, GardenTaskController controller) => controller.Create(task)
+          (GardenTask task, TaskController controller) => controller.Create("gardentask", task)
         )
         .Accepts<GardenTask>("application/json")
         .Produces<GardenTask>(statusCode: 200, contentType: "application/json");
@@ -165,7 +157,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )]
-          (string id, GardenTaskController controller) => controller.Get(id)
+          (string id, TaskController controller) => controller.Get("gardentask", id)
         )
         .Produces<GardenTask>();
 
@@ -173,7 +165,7 @@ namespace HemFixBack
           [Authorize(
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
-          )] (GardenTaskController controller) => controller.List())
+          )] (TaskController controller) => controller.List("gardentask"))
         .Produces<List<GardenTask>>(statusCode: 200, contentType: "application/json");
 
         app.MapPut(
@@ -182,7 +174,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (GardenTask newTask, GardenTaskController controller) => controller.Update(newTask)
+          (GardenTask newTask, TaskController controller) => controller.Update("gardentask", newTask)
         )
         .Accepts<GardenTask>("application/json")
         .Produces<GardenTask>(statusCode: 200, contentType: "application/json");
@@ -193,7 +185,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (string id, GardenTaskController controller) => controller.Delete(id)
+          (string id, TaskController controller) => controller.Delete("gardentask", id)
         );
 
         app.MapPost(
@@ -202,7 +194,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (MaintenanceTask task, MaintenanceTaskController controller) => controller.Create(task)
+          (MaintenanceTask task, TaskController controller) => controller.Create("maintenancetask", task)
         )
         .Accepts<MaintenanceTask>("application/json")
         .Produces<MaintenanceTask>(statusCode: 200, contentType: "application/json");
@@ -213,7 +205,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )]
-          (string id, MaintenanceTaskController controller) => controller.Get(id)
+          (string id, TaskController controller) => controller.Get("maintenancetask", id)
         )
         .Produces<MaintenanceTask>();
 
@@ -223,7 +215,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )] 
-          (MaintenanceTaskController controller) => controller.List()
+          (TaskController controller) => controller.List("maintenancetask")
         )
         .Produces<List<MaintenanceTask>>(statusCode: 200, contentType: "application/json");
 
@@ -233,8 +225,8 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (MaintenanceTask newTask, MaintenanceTaskController controller) =>
-            controller.Update(newTask)
+          (MaintenanceTask newTask, TaskController controller) =>
+            controller.Update("maintenancetask", newTask)
         )
         .Accepts<MaintenanceTask>("application/json")
         .Produces<MaintenanceTask>(statusCode: 200, contentType: "application/json");
@@ -245,7 +237,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (string id, MaintenanceTaskController controller) => controller.Delete(id)
+          (string id, TaskController controller) => controller.Delete("maintenancetask", id)
         );
 
         app.MapPost(
@@ -254,7 +246,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (PurchaseTask task, PurchaseTaskController controller) => controller.Create(task)
+          (PurchaseTask task, TaskController controller) => controller.Create("purchasetask", task)
         )
         .Accepts<PurchaseTask>("application/json")
         .Produces<PurchaseTask>(statusCode: 200, contentType: "application/json");
@@ -265,7 +257,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )]
-          (string id, PurchaseTaskController controller) => controller.Get(id)
+          (string id, TaskController controller) => controller.Get("purchasetask", id)
         )
         .Produces<PurchaseTask>();
 
@@ -275,7 +267,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
           )] 
-          (PurchaseTaskController controller) => controller.List()
+          (TaskController controller) => controller.List("purchasetask")
         )
         .Produces<List<PurchaseTask>>(statusCode: 200, contentType: "application/json");
 
@@ -285,8 +277,8 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (PurchaseTask newTask, PurchaseTaskController controller) =>
-            controller.Update(newTask)
+          (PurchaseTask newTask, TaskController controller) =>
+            controller.Update("purchasetask", newTask)
         )
         .Accepts<PurchaseTask>("application/json")
         .Produces<PurchaseTask>(statusCode: 200, contentType: "application/json");
@@ -297,12 +289,8 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (string id, PurchaseTaskController controller) => controller.Delete(id)
+          (string id, TaskController controller) => controller.Delete("purchasetask", id)
         );
-
-        app.MapGet("/alltasks/list", (TaskController controller) => controller.List())
-          .Produces<List<ITask>>(statusCode: 200, contentType: "application/json");
-
       }
     }
   }

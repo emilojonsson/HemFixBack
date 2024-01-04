@@ -56,7 +56,7 @@ namespace HemFixBack.Repositories
         }
 
         propertyName = propertyName.TrimEnd(',');
-        var objectToSave = (ITask)theObject; // Kasta objektet till IDatabaseRecord
+        var objectToSave = (ITask)theObject;
         string query =
           $@"INSERT INTO {tableName.ToLower()} ({propertyName.ToLower()}) VALUES({objectToSave.ValueString()});";
         NpgsqlCommand cmd = new NpgsqlCommand(query, con);

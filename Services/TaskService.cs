@@ -1,34 +1,94 @@
 using HemFixBack.Models;
-using Serilog;
+using HemFixBack.Repositories;
+using System.Reflection;
 
 namespace HemFixBack.Services
 {
   public class TaskService : ITaskService
   {
-    private readonly IGardenTaskService _gardenTaskService;
-    private readonly IMaintenanceTaskService _maintenanceTaskService;
-
-    public TaskService(
-      IGardenTaskService gardenTaskService,
-      IMaintenanceTaskService maintenanceTaskService
-    )
+    public readonly TaskFactory _taskFactory;
+    public TaskService(TaskFactory taskFactory)
     {
-      _gardenTaskService = gardenTaskService;
-      _maintenanceTaskService = maintenanceTaskService;
+      _taskFactory = taskFactory;
+    }
+    public ITask Create(string tableName, ITask task)
+    {
+      if (Database.CreateRecord(task) == false)
+      {
+        task = null;
+      }
+      return task;
     }
 
-    public List<ITask> List()
+    public ITask Get(string tableName, string id)
     {
-      var gardenTasks = _gardenTaskService.List();
-      var maintenanceTasks = _maintenanceTaskService.List();
+      object[] record = Database.ReadRecord(tableName, id);
+      if (record == null)
+      {
+        return null;
+      }
 
-      var allTasks = new List<ITask>();
-      allTasks.AddRange(gardenTasks);
-      allTasks.AddRange(maintenanceTasks);
+      ITask newTask = _taskFactory.CreateTaskInstance(tableName);
+      PropertyInfo[] properties = newTask.GetType().GetProperties();
+      properties = properties.OrderBy(p => p.Name).ToArray();
+      for (int i = 0; i < properties.Length; i++)
+      {
+        if (i < record.Length)
+        {
+          // Konvertera värdena om det behövs (till exempel från databastypen)
+          object value = Convert.ChangeType(record[i], properties[i].PropertyType);
+          // Sätt egenskapens värde
+          properties[i].SetValue(newTask, value);
+        }
+      }
+      return newTask;
+    }
 
-      Log.Information("Serialized tasks: {@AllTasks}", allTasks);
+    public List<ITask> List(string tableName)
+    {
+      var records = Database.ListRecords(tableName);
+      if (records is null)
+      {
+        return null;
+      }
 
-      return allTasks;
+      List<ITask> tasks = new List<ITask>();
+      foreach (var record in records)
+      {
+        ITask newTask = _taskFactory.CreateTaskInstance(tableName);
+        PropertyInfo[] properties = newTask.GetType().GetProperties();
+        properties = properties.OrderBy(p => p.Name).ToArray();
+        for (int i = 0; i < properties.Length; i++)
+        {
+          if (i < record.Length)
+          {
+            // Konvertera värdena om det behövs (till exempel från databastypen)
+            object value = Convert.ChangeType(record[i], properties[i].PropertyType);
+            // Sätt egenskapens värde
+            properties[i].SetValue(newTask, value);
+          }
+        }
+        tasks.Add(newTask);
+      }
+      return tasks;
+    }
+
+    public ITask Update(string tableName, ITask newTask)
+    {
+      if (Delete(tableName, newTask.Id))
+      {
+        Create(tableName, newTask);
+      }
+      else
+      {
+        return null;
+      }
+      return newTask;
+    }
+
+    public bool Delete(string tableName, string id)
+    {
+      return Database.DeleteRecord(tableName, id);
     }
   }
 }
