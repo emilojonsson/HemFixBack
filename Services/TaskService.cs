@@ -1,19 +1,23 @@
-using HemFixBack.Models;
+using HemFixBack.Interfaces;
 using HemFixBack.Repositories;
 using System.Reflection;
+using Npgsql;
 
 namespace HemFixBack.Services
 {
   public class TaskService : ITaskService
   {
     public readonly TaskFactory _taskFactory;
-    public TaskService(TaskFactory taskFactory)
+    public readonly Database _database;
+    public TaskService(TaskFactory taskFactory, Database database)
     {
       _taskFactory = taskFactory;
+      _database = database;
     }
+
     public ITask Create(string tableName, ITask task)
     {
-      if (Database.CreateRecord(task) == false)
+      if (_database.CreateRecord(tableName, task) == false)
       {
         task = null;
       }
@@ -22,53 +26,30 @@ namespace HemFixBack.Services
 
     public ITask Get(string tableName, string id)
     {
-      object[] record = Database.ReadRecord(tableName, id);
-      if (record == null)
+      using (var dataReader = _database.ReadRecord(tableName, id))
       {
-        return null;
-      }
-
-      ITask newTask = _taskFactory.CreateTaskInstance(tableName);
-      PropertyInfo[] properties = newTask.GetType().GetProperties();
-      properties = properties.OrderBy(p => p.Name).ToArray();
-      for (int i = 0; i < properties.Length; i++)
-      {
-        if (i < record.Length)
+        if (dataReader != null && dataReader.HasRows)
         {
-          // Konvertera värdena om det behövs (till exempel från databastypen)
-          object value = Convert.ChangeType(record[i], properties[i].PropertyType);
-          // Sätt egenskapens värde
-          properties[i].SetValue(newTask, value);
+          dataReader.Read();
+          return ConvertDataReaderToTask(dataReader, tableName);
         }
       }
-      return newTask;
+      return null;
     }
 
     public List<ITask> List(string tableName)
     {
-      var records = Database.ListRecords(tableName);
-      if (records is null)
-      {
-        return null;
-      }
-
       List<ITask> tasks = new List<ITask>();
-      foreach (var record in records)
+      using (var dataReader = _database.ListRecords(tableName))
       {
-        ITask newTask = _taskFactory.CreateTaskInstance(tableName);
-        PropertyInfo[] properties = newTask.GetType().GetProperties();
-        properties = properties.OrderBy(p => p.Name).ToArray();
-        for (int i = 0; i < properties.Length; i++)
+        if (dataReader != null && dataReader.HasRows)
         {
-          if (i < record.Length)
+          while (dataReader.Read())
           {
-            // Konvertera värdena om det behövs (till exempel från databastypen)
-            object value = Convert.ChangeType(record[i], properties[i].PropertyType);
-            // Sätt egenskapens värde
-            properties[i].SetValue(newTask, value);
+            ITask newTask = ConvertDataReaderToTask(dataReader, tableName);
+            tasks.Add(newTask);
           }
         }
-        tasks.Add(newTask);
       }
       return tasks;
     }
@@ -88,7 +69,21 @@ namespace HemFixBack.Services
 
     public bool Delete(string tableName, string id)
     {
-      return Database.DeleteRecord(tableName, id);
+      return _database.DeleteRecord(tableName, id);
+    }
+    private ITask ConvertDataReaderToTask(NpgsqlDataReader dataReader, string tableName)
+    {
+      ITask newTask = _taskFactory.CreateTaskInstance(tableName);
+      PropertyInfo[] properties = newTask.GetType().GetProperties();
+      properties = properties.OrderBy(p => p.Name).ToArray();
+      for (int i = 0; i < properties.Length; i++)
+      {
+        if (i < dataReader.FieldCount)
+        {
+          properties[i].SetValue(newTask, dataReader[i]);
+        }
+      }
+      return newTask;
     }
   }
 }

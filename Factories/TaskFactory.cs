@@ -1,4 +1,5 @@
 using HemFixBack.Models;
+using HemFixBack.Interfaces;
 
 namespace HemFixBack
 {

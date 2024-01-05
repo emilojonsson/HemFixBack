@@ -1,3 +1,6 @@
+using HemFixBack.Interfaces;
+using System.Text;
+
 namespace HemFixBack.Models
 {
   public abstract class Task : ITask
@@ -5,28 +8,29 @@ namespace HemFixBack.Models
     public string CategoryName { get; set; }
     public string Id { get; set; }
     public string Title { get; set; }
+
     public string ValueString()
     {
-      string attributes = string.Empty;
+      StringBuilder resultBuilder = new StringBuilder();
       foreach (var property in this.GetType().GetProperties().OrderBy(p => p.Name))
       {
         if (property.PropertyType == typeof(string))
         {
-          attributes += $"'{property.GetValue(this)}',";
+          resultBuilder.Append($"'{property.GetValue(this)}',");
         }
         else
         {
           if (property.GetValue(this) != null) 
           {
-            attributes += $"{property.GetValue(this)},";
+            resultBuilder.Append($"{property.GetValue(this)},");
           }
           else 
           {
-            attributes += "DEFAULT,";
+            resultBuilder.Append("DEFAULT");
           }
         }
       }
-      return attributes.TrimEnd(',').ToLower();
+      return resultBuilder.ToString().TrimEnd(',').ToLower();
     }
   }
 }

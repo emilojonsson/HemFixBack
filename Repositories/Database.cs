@@ -1,31 +1,23 @@
-﻿using System.Data;
-using HemFixBack.Models;
+﻿using HemFixBack.Interfaces;
+using System.Data;
+using System.Text;
 using Npgsql;
 
 namespace HemFixBack.Repositories
 {
-
-  public static class Database
+  public class Database
   {
-    public static Dictionary<string, Type> TypeOfClass { get; } =
-      //a "key" of all classes that implement the database
-      new Dictionary<string, Type>
-      {
-        { "simpletask", typeof(SimpleTask) },
-        { "gardentask", typeof(GardenTask) },
-        { "maintenancetask", typeof(MaintenanceTask) },
-        { "purchasetask", typeof(PurchaseTask) }
-      };
-
-    public static NpgsqlConnection GetConnection()
+    public NpgsqlConnection GetConnection()
     {
+      string userNameDB = Environment.GetEnvironmentVariable("userPG");
       string password = Environment.GetEnvironmentVariable("passwordPG");
+      string databaseName = Environment.GetEnvironmentVariable("databasePG");
       return new NpgsqlConnection(
-        $@"Server=localhost;Port=5432;User Id=postgres;Password={password};Database=HemFix"
+        $@"Server=localhost;Port=5432;User Id={userNameDB};Password={password};Database={databaseName}"
       );
     }
 
-    public static void TestConnection()
+    public void TestConnection()
     {
       using (NpgsqlConnection con = GetConnection())
       {
@@ -37,28 +29,18 @@ namespace HemFixBack.Repositories
       }
     }
 
-    public static bool CreateRecord(object theObject)
+    public bool CreateRecord(string tableName, IDatabase newIDatabaseObject)
     {
-      if (!(theObject is ITask))
-      {
-        throw new ArgumentException("Object does not implement ITask interface.");
-      }
-
       using (NpgsqlConnection con = GetConnection())
       {
-        var type = theObject.GetType();
-        var tableName = TypeOfClass.FirstOrDefault(x => x.Value == type).Key;
-        string propertyName = string.Empty;
-
-        foreach (var property in type.GetProperties().OrderBy(p => p.Name))
+        StringBuilder resultBuilder = new StringBuilder();
+        foreach (var property in newIDatabaseObject.GetType().GetProperties().OrderBy(p => p.Name))
         {
-          propertyName = propertyName + tableName + "_" + property.Name + ",";
+          resultBuilder.Append($"{tableName}_{property.Name},");
         }
-
-        propertyName = propertyName.TrimEnd(',');
-        var objectToSave = (ITask)theObject;
+        string propertyNames = resultBuilder.ToString().ToLower().TrimEnd(',');
         string query =
-          $@"INSERT INTO {tableName.ToLower()} ({propertyName.ToLower()}) VALUES({objectToSave.ValueString()});";
+          $@"INSERT INTO {tableName.ToLower()} ({propertyNames}) VALUES({newIDatabaseObject.ValueString()});";
         NpgsqlCommand cmd = new NpgsqlCommand(query, con);
         con.Open();
         int n = cmd.ExecuteNonQuery();
@@ -73,43 +55,25 @@ namespace HemFixBack.Repositories
       }
     }
 
-    public static object[] ReadRecord(string tableName, string id)
+    public NpgsqlDataReader ReadRecord(string tableName, string id)
     {
-      using (NpgsqlConnection con = GetConnection())
-      {
-        var query = $"SELECT * FROM {tableName} WHERE {tableName}_id = '{id}'";
-        NpgsqlCommand cmd = new NpgsqlCommand(query, con);
-        con.Open();
-        var dataReader = cmd.ExecuteReader();
-        dataReader.Read();
-        int columns = dataReader.FieldCount;
-        object[] values = new object[columns];
-        dataReader.GetValues(values);
-        return values;
-      }
+      NpgsqlConnection con = GetConnection();
+      con.Open();
+      var query = $"SELECT * FROM {tableName} WHERE {tableName}_id = '{id}'";
+      NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+      return cmd.ExecuteReader(CommandBehavior.CloseConnection);
     }
 
-    public static List<object[]> ListRecords(string tableName)
+    public NpgsqlDataReader ListRecords(string tableName)
     {
-      using (NpgsqlConnection con = GetConnection())
-      {
-        var query = $"SELECT * FROM {tableName}";
-        NpgsqlCommand cmd = new NpgsqlCommand(query, con);
-        con.Open();
-        var dataReader = cmd.ExecuteReader();
-        List<object[]> records = new List<object[]>();
-        while (dataReader.Read())
-        {
-          int columns = dataReader.FieldCount;
-          object[] values = new object[columns];
-          dataReader.GetValues(values);
-          records.Add(values);
-        }
-        return records;
-      }
+      NpgsqlConnection con = GetConnection();
+      con.Open();
+      var query = $"SELECT * FROM {tableName}";
+      NpgsqlCommand cmd = new NpgsqlCommand(query, con);
+      return cmd.ExecuteReader(CommandBehavior.CloseConnection);
     }
 
-    public static bool DeleteRecord(string tableName, string id)
+    public bool DeleteRecord(string tableName, string id)
     {
       using (NpgsqlConnection con = GetConnection())
       {

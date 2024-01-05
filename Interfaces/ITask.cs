@@ -1,10 +1,9 @@
-namespace HemFixBack.Models
+namespace HemFixBack.Interfaces
 {
-  public interface ITask
+  public interface ITask : IDatabase
   {
     string CategoryName { get; set; }
     string Id { get; set; }
     string Title { get; set; }
-    string ValueString();
   }
 }

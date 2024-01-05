@@ -1,12 +1,10 @@
-using HemFixBack.Models;
-using HemFixBack.Services;
+using HemFixBack.Interfaces;
 
 namespace HemFixBack.Controllers
 {
   public class TaskController
   {
     private readonly ITaskService _service;
-
     public TaskController(ITaskService service)
     {
       _service = service;

@@ -1,6 +1,6 @@
 ﻿using HemFixBack.Models;
 
-namespace HemFixBack.Services
+namespace HemFixBack
 {
     public interface IUserService
     {

@@ -3,6 +3,8 @@ using HemFixBack.Config;
 using HemFixBack.Controllers;
 using HemFixBack.Models;
 using HemFixBack.Services;
+using HemFixBack.Repositories;
+using HemFixBack.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -49,6 +51,7 @@ namespace HemFixBack
       builder.Services.AddScoped<TaskController>();
       builder.Services.AddSingleton<ITaskService, TaskService>();
       builder.Services.AddSingleton<TaskFactory>();
+      builder.Services.AddSingleton<Database>();
 
       builder.Services.AddCors(options =>
       {

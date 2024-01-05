@@ -1,6 +1,4 @@
-using HemFixBack.Models;
-
-namespace HemFixBack.Services
+namespace HemFixBack.Interfaces
 {
   public interface ITaskService
   {
