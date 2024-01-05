@@ -129,7 +129,7 @@ namespace HemFixBack
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Administrator"
           )]
-          (ITask newTask, TaskController controller) => controller.Update("simpletask", newTask)
+          (SimpleTask newTask, TaskController controller) => controller.Update("simpletask", newTask)
         )
         .Accepts<SimpleTask>("application/json")
         .Produces<SimpleTask>(statusCode: 200, contentType: "application/json");
