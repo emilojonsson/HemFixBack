@@ -4,10 +4,6 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Google.Apis.Auth;
-using FirebaseAdmin.Auth;
-using Newtonsoft.Json;
 
 namespace HemFixBack.Controllers
 {
