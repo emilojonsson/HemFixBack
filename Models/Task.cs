@@ -9,6 +9,8 @@ namespace HemFixBack.Models
     public string Id { get; set; }
     public string Title { get; set; }
 
+    public abstract void SetAdditionalProperties(Npgsql.NpgsqlDataReader dataReader);
+
     public string ValueString()
     {
       StringBuilder resultBuilder = new StringBuilder();

@@ -1,7 +1,7 @@
 using HemFixBack.Interfaces;
 using HemFixBack.Repositories;
-using System.Reflection;
 using Npgsql;
+using System.Collections;
 
 namespace HemFixBack.Services
 {
@@ -37,9 +37,9 @@ namespace HemFixBack.Services
       return null;
     }
 
-    public List<ITask> List(string tableName)
+    public ArrayList List(string tableName)
     {
-      List<ITask> tasks = new List<ITask>();
+      ArrayList tasks = new ArrayList();
       using (var dataReader = _database.ListRecords(tableName))
       {
         if (dataReader != null && dataReader.HasRows)
@@ -53,6 +53,7 @@ namespace HemFixBack.Services
       }
       return tasks;
     }
+
 
     public ITask Update(string tableName, ITask newTask)
     {
@@ -71,18 +72,11 @@ namespace HemFixBack.Services
     {
       return _database.DeleteRecord(tableName, id);
     }
+
     private ITask ConvertDataReaderToTask(NpgsqlDataReader dataReader, string tableName)
     {
       ITask newTask = _taskFactory.CreateTaskInstance(tableName);
-      PropertyInfo[] properties = newTask.GetType().GetProperties();
-      properties = properties.OrderBy(p => p.Name).ToArray();
-      for (int i = 0; i < properties.Length; i++)
-      {
-        if (i < dataReader.FieldCount)
-        {
-          properties[i].SetValue(newTask, dataReader[i]);
-        }
-      }
+      newTask.SetAdditionalProperties(dataReader);
       return newTask;
     }
   }

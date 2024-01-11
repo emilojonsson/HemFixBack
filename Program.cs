@@ -164,7 +164,7 @@ namespace HemFixBack
         )
         .Produces<GardenTask>();
 
-        app.MapGet("/gardentask/list",           
+        app.MapGet("/gardentask/list",
           [Authorize(
             AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,
             Roles = "Standard, Administrator"
