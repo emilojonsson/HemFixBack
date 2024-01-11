@@ -18,6 +18,7 @@ namespace HemFixBack.Models
     {
       Title = dataReader["gardentask_title"] as string;
       Id = dataReader["gardentask_id"] as string;
+      Priority = Convert.ToBoolean(dataReader["gardentask_priority"]);
       CategoryName = dataReader["gardentask_categoryname"] as string;
 
       Description = dataReader["gardentask_description"] as string;

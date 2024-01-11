@@ -8,6 +8,7 @@ namespace HemFixBack.Models
     {
       Title = dataReader["simpletask_title"] as string;
       Id = dataReader["simpletask_id"] as string;
+      Priority = Convert.ToBoolean(dataReader["simpletask_priority"]);
       CategoryName = dataReader["simpletask_categoryname"] as string;
     }
 

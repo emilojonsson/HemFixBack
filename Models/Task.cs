@@ -7,6 +7,7 @@ namespace HemFixBack.Models
   {
     public string CategoryName { get; set; }
     public string Id { get; set; }
+    public bool Priority { get; set; }
     public string Title { get; set; }
 
     public abstract void SetAdditionalProperties(Npgsql.NpgsqlDataReader dataReader);
