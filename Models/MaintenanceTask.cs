@@ -10,6 +10,8 @@ namespace HemFixBack.Models
       Id = dataReader["maintenancetask_id"] as string;
       Priority = Convert.ToBoolean(dataReader["maintenancetask_priority"]);
       CategoryName = dataReader["maintenancetask_categoryname"] as string;
+      Background = dataReader["maintenancetask_background"] as string;
+      TaskIndex = Convert.ToInt32(dataReader["maintenancetask_taskindex"]);
     }
   }
 }

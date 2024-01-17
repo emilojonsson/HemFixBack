@@ -7,6 +7,9 @@ namespace HemFixBack.Interfaces
     string CategoryName { get; set; }
     string Id { get; set; }
     string Title { get; set; }
+    bool Priority { get; set; }
+    int TaskIndex { get; set; }
+    string Background { get; set; }
 
     void SetAdditionalProperties(NpgsqlDataReader dataReader);
   }

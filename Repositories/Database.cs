@@ -68,7 +68,7 @@ namespace HemFixBack.Repositories
     {
       NpgsqlConnection con = GetConnection();
       con.Open();
-      var query = $"SELECT * FROM {tableName}";
+      var query = $"SELECT * FROM {tableName} ORDER BY {tableName}_taskindex";
       NpgsqlCommand cmd = new NpgsqlCommand(query, con);
       return cmd.ExecuteReader(CommandBehavior.CloseConnection);
     }

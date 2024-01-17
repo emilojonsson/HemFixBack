@@ -5,9 +5,11 @@ namespace HemFixBack.Models
 {
   public abstract class Task : ITask
   {
+    public string Background { get; set; }
     public string CategoryName { get; set; }
     public string Id { get; set; }
     public bool Priority { get; set; }
+    public int TaskIndex { get; set; }
     public string Title { get; set; }
 
     public abstract void SetAdditionalProperties(Npgsql.NpgsqlDataReader dataReader);
